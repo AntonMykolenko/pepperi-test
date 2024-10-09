@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Name/Value Pair Manager(Pepperi test)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <style>
+        /* Стилі */
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        #input-container {
+            margin-bottom: 20px;
+        }
+        #pair-input {
+            width: calc(100% - 100px);
+            padding: 5px;
+        }
+        #add-button {
+            width: 90px;
+        }
+        #list-container {
+            border: 1px solid #ccc;
+            height: 200px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        .list-item {
+            padding: 5px;
+            cursor: pointer;
+            border: 1px solid transparent; 
+        }
+        .list-item:nth-child(even) {
+            background-color: #f0f0f0;
+        }
+        .selected {
+            background-color: #5b5454 !important;
+            border: 1px solid black;
+            color: white;
+        }
+        #button-container {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        button {
+            margin-bottom: 10px;
+        }
+        /* Адаптивний дизайн */
+        @media (max-width: 600px) {
+            #pair-input {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            #add-button {
+                width: 100%;
+            }
+            #button-container {
+                flex-direction: column;
+            }
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="input-container">
+        <input type="text" id="pair-input" placeholder="Enter name=value">
+        <button id="add-button">Add</button>
+    </div>
+    <div id="list-container"></div>
+    <div id="button-container">
+        <button id="sort-name">Sort by Name</button>
+        <button id="sort-value">Sort by Value</button>
+        <button id="delete">Delete</button>
+        <button id="show-xml">Show as XML</button>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // Масив для пар
+            let pairs = [];
+
+            // Функція для додавання пари
+            function addPair() {
+                const input = $('#pair-input').val().trim();
+                // Валідація формату вводу за допомогою regex
+                const match = input.match(/^([a-zA-Z0-9]+)\s*=\s*([a-zA-Z0-9]+)$/);
+                if (match) {
+                    // Додавання пари до масиву
+                    pairs.push({ name: match[1], value: match[2] });
+                    updateList();
+                    $('#pair-input').val('');
+                } else {
+                    alert('Invalid input format. Please use name=value');
+                }
+            }
+
+            // Функція для оновлення списку
+            function updateList() {
+                $('#list-container').empty();
+                pairs.forEach((pair, index) => {
+                    $('#list-container').append(`<div class="list-item" data-index="${index}">${pair.name} = ${pair.value}</div>`);
+                });
+            }
+
+            // Функція для сортування пар за іменем
+            function sortName() {
+                pairs.sort((a, b) => a.name.localeCompare(b.name));
+                updateList();
+            }
+
+            // Функція для сортування пар за значенням
+            function sortValue() {
+                pairs.sort((a, b) => a.value.localeCompare(b.value));
+                updateList();
+            }
+
+            // Функція для видалення вибраних пар
+            function deleteSelected() {
+                // Отримання індексів вибраних елементів у зворотньому порядку
+                const selectedIndices = $('.selected').map(function() {
+                    return $(this).data('index');
+                }).get().sort((a, b) => b - a);
+
+                // Видалення вибраних елементів з масиву
+                selectedIndices.forEach(index => {
+                    pairs.splice(index, 1);
+                });
+                updateList();
+            }
+
+            // Функція для генерації та відображення XML
+            function showXML() {
+                let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<pairs>\n';
+                pairs.forEach(pair => {
+                    xml += `  <pair>\n    <name>${pair.name}</name>\n    <value>${pair.value}</value>\n  </pair>\n`;
+                });
+                xml += '</pairs>';
+                // Відображення XML як alert
+                alert(xml);
+            }
+
+            // Призначення обробників подій
+            $('#add-button').click(addPair);
+            $('#pair-input').keypress(function(e) {
+                if (e.which === 13) addPair(); // Клавіша Enter
+            });
+            $('#sort-name').click(sortName);
+            $('#sort-value').click(sortValue);
+            $('#delete').click(deleteSelected);
+            $('#show-xml').click(showXML);
+
+            // Делегування подій для елементів списку
+            $(document).on('click', '.list-item', function() {
+                $(this).toggleClass('selected');
+            });
+        });
+    </script>
+</body>
+</html>
